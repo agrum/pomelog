@@ -42,6 +42,8 @@ pLog::pLog(){
 
 pLog::~pLog(){
 	m_logFile.close();
+	terminate();
+	wait();
 }
 
 void pLog::init(const QString& p_logPath, int p_logLvl){
@@ -140,8 +142,10 @@ void pLog::run(){
 	while(true){
 		m_mutex.lock();
 		while(!m_pendingLog.empty()){
-			if(m_logFile.write(m_pendingLog.dequeue().toAscii()) == -1)
+			if(m_logFile.write(m_pendingLog.dequeue().toAscii()) == -1){
 				exit(log(&m_log, pLog::ERROR, pLog::ERROR_LOG_FILE, "Writing error"));
+			}
+			m_logFile.close();
 		}
 		m_mutex.unlock();
 
