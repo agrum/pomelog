@@ -121,8 +121,8 @@ int pLog::log(const void* p_signKey, Code p_code, int p_msg, const QString& p_ex
 	QString addr = QString("%1").arg((int) p_signKey, 16, 16);
 	QString sign = m_log.m_signatoryMap.value(p_signKey);
 	QString code = m_log.m_codeMap.value(p_code);
-	QString msg = m_log.m_msgMap.value(p_msg);
-	QString logMsg = QString("(%1) %2 | %3::%4 | %5 | %6")
+	QString msg = QString ("%1").arg(m_log.m_msgMap.value(p_msg), 16);
+	QString logMsg = QString("(%1) %2 | %3 | %4 | %5 | %6")
 							.arg(code)
 							.arg(QTime::currentTime().toString("hh:mm:ss.zzz"))
 							.arg(sign)
@@ -132,7 +132,7 @@ int pLog::log(const void* p_signKey, Code p_code, int p_msg, const QString& p_ex
 
 	qDebug() << logMsg;
 	m_log.m_mutex.lock();
-	m_log.m_pendingLog.enqueue(logMsg);
+	m_log.m_pendingLog.enqueue(logMsg + "\n");
 	m_log.m_mutex.unlock();
 
 	return 0;
@@ -145,10 +145,10 @@ void pLog::run(){
 			if(m_logFile.write(m_pendingLog.dequeue().toAscii()) == -1){
 				exit(log(&m_log, pLog::ERROR, pLog::ERROR_LOG_FILE, "Writing error"));
 			}
-			m_logFile.close();
+			m_logFile.flush();
 		}
 		m_mutex.unlock();
 
-		msleep(1000);
+		msleep(100);
 	}
 }
