@@ -54,6 +54,7 @@ public:
 	};
 
 	static void init(const QString&, int);
+	static void extendMap(const QMap<int, QString>&);
 
 	static int sign(const void*, const QString&);
 	static void unsign(const void*);

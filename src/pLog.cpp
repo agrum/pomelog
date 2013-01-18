@@ -56,6 +56,10 @@ void pLog::init(const QString& p_logPath, int p_logLvl){
 	m_log.start();
 }
 
+void pLog::extendMap(const QMap<int, QString>& p_mapExtension){
+	m_log.m_msgMap.unite(p_mapExtension);
+}
+
 int pLog::sign(const void* p_key, const QString& p_value){
 	if(p_key == NULL || p_value.isNull())
 		return logE(&m_log, pLog::ERROR_SIGNATURE, "Signature empty");
