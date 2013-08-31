@@ -23,6 +23,7 @@
 #include <QMap>
 #include <QQueue>
 #include <QMutex>
+#include <QWaitCondition>
 #include <QTime>
 #include <QFile>
 #include <QDebug>
@@ -59,16 +60,16 @@ public:
 	static int sign(const void*, const QString&);
 	static void unsign(const void*);
 
-	static int logI(const void*, int, const QString& p_ext = "");
-	static int logD(const void*, int, const QString& p_ext = "");
-	static int logW(const void*, int, const QString& p_ext = "");
-	static int logE(const void*, int, const QString& p_ext = "");
-
-	void run();
+	static int logI(const void*, int, const QString& p_ext = "", bool p_waitTobeLogged = false);
+	static int logD(const void*, int, const QString& p_ext = "", bool p_waitTobeLogged = false);
+	static int logW(const void*, int, const QString& p_ext = "", bool p_waitTobeLogged = false);
+	static int logE(const void*, int, const QString& p_ext = "", bool p_waitTobeLogged = false);
 
 private:
+	void run();
+
 	static int check(const void*, int);
-	int log(const void*, Code, int, const QString& p_ext = "");
+	int log(const void*, Code, int, const QString& p_ext = "", bool p_waitTobeLogged = false);
 
 	pLog();
 	~pLog();
@@ -83,6 +84,8 @@ private:
 	QMap<int, QString> m_msgMap;
 	QQueue<QString> m_pendingLog;
 	QMutex m_mutex;
+	QWaitCondition m_waitEntryLogged;
+	QWaitCondition m_waitQueueNonEmpty;
 };
 
 #endif /* PLog_H_ */

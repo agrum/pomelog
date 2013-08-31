@@ -79,32 +79,32 @@ void pLog::unsign(const void* p_key){
 	m_log.m_signatoryMap.remove(p_key);
 }
 
-int pLog::logI(const void* p_sign, int p_msg, const QString& p_ext){
+int pLog::logI(const void* p_sign, int p_msg, const QString& p_ext, bool p_waitTobeLogged){
 	if(check(p_sign, p_msg) != 1)
 		return -1;
 
-	return m_log.log(p_sign, INFO, p_msg, p_ext);
+    return m_log.log(p_sign, INFO, p_msg, p_ext, p_waitTobeLogged);
 }
 
-int pLog::logD(const void* p_sign, int p_msg, const QString& p_ext){
+int pLog::logD(const void* p_sign, int p_msg, const QString& p_ext, bool p_waitTobeLogged){
 	if(check(p_sign, p_msg) != 1)
 		return -1;
 
-	return m_log.log(p_sign, DEBUG, p_msg, p_ext);
+    return m_log.log(p_sign, DEBUG, p_msg, p_ext, p_waitTobeLogged);
 }
 
-int pLog::logW(const void* p_sign, int p_msg, const QString& p_ext){
+int pLog::logW(const void* p_sign, int p_msg, const QString& p_ext, bool p_waitTobeLogged){
 	if(check(p_sign, p_msg) != 1)
 		return -1;
 
-	return m_log.log(p_sign, WARNING, p_msg, p_ext);
+    return m_log.log(p_sign, WARNING, p_msg, p_ext, p_waitTobeLogged);
 }
 
-int pLog::logE(const void* p_sign, int p_msg, const QString& p_ext){
+int pLog::logE(const void* p_sign, int p_msg, const QString& p_ext, bool p_waitTobeLogged){
 	if(check(p_sign, p_msg) != 1)
 		return -1;
 
-	return m_log.log(p_sign, ERROR, p_msg, p_ext);
+    return m_log.log(p_sign, ERROR, p_msg, p_ext, p_waitTobeLogged);
 }
 
 int pLog::check(const void* p_sign, int p_msg){
@@ -118,14 +118,14 @@ int pLog::check(const void* p_sign, int p_msg){
 	return 1;
 }
 
-int pLog::log(const void* p_signKey, Code p_code, int p_msg, const QString& p_ext){
+int pLog::log(const void* p_signKey, Code p_code, int p_msg, const QString& p_ext, bool p_waitTobeLogged){
 	if((p_code & m_log.m_logLvl) == 0)
 		return 0;
 
-	QString addr = QString("%1").arg((int) p_signKey, 16, 16);
-	QString sign = m_log.m_signatoryMap.value(p_signKey);
-	QString code = m_log.m_codeMap.value(p_code);
-	QString msg = QString ("%1").arg(m_log.m_msgMap.value(p_msg), 16);
+    QString addr = QString("%1").arg((long) p_signKey, 16, 16);
+    QString sign = m_signatoryMap.value(p_signKey);
+    QString code = m_codeMap.value(p_code);
+    QString msg = QString ("%1").arg(m_msgMap.value(p_msg), 16);
 	QString logMsg = QString("(%1) %2 | %3 | %4 | %5 | %6")
 							.arg(code)
 							.arg(QTime::currentTime().toString("hh:mm:ss.zzz"))
@@ -135,9 +135,12 @@ int pLog::log(const void* p_signKey, Code p_code, int p_msg, const QString& p_ex
 							.arg(p_ext);
 
 	qDebug() << logMsg;
-	m_log.m_mutex.lock();
-	m_log.m_pendingLog.enqueue(logMsg + "\n");
-	m_log.m_mutex.unlock();
+    m_mutex.lock();
+        m_pendingLog.enqueue(logMsg + "\n");
+        m_waitQueueNonEmpty.wakeAll();
+        if(p_waitTobeLogged)
+            m_waitEntryLogged.wait(&m_mutex);
+    m_mutex.unlock();
 
 	return 0;
 }
@@ -145,14 +148,14 @@ int pLog::log(const void* p_signKey, Code p_code, int p_msg, const QString& p_ex
 void pLog::run(){
 	while(true){
 		m_mutex.lock();
-		while(!m_pendingLog.empty()){
-			if(m_logFile.write(m_pendingLog.dequeue().toAscii()) == -1){
-				exit(log(&m_log, pLog::ERROR, pLog::ERROR_LOG_FILE, "Writing error"));
-			}
-			m_logFile.flush();
-		}
-		m_mutex.unlock();
-
-		msleep(100);
+            while(!m_pendingLog.empty()){
+                if(m_logFile.write(m_pendingLog.dequeue().toLatin1()) == -1){
+                    exit(log(&m_log, pLog::ERROR, pLog::ERROR_LOG_FILE, "Writing error"));
+                }
+                m_logFile.flush();
+            }
+            m_waitEntryLogged.wakeAll();
+            m_waitQueueNonEmpty.wait(&m_mutex);
+        m_mutex.unlock();
 	}
 }

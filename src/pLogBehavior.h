@@ -8,12 +8,12 @@ class pLogBehavior
 public:
     pLogBehavior();
 	pLogBehavior(const QString);
-	~pLogBehavior();
+    virtual ~pLogBehavior();
 
-	int logI(int, const QString& p_ext = "");
-	int logD(int, const QString& p_ext = "");
-	int logW(int, const QString& p_ext = "");
-	int logE(int, const QString& p_ext = "");
+    int logI(int, const QString& p_ext = "", bool p_waitTobeLogged = false);
+    int logD(int, const QString& p_ext = "", bool p_waitTobeLogged = false);
+    int logW(int, const QString& p_ext = "", bool p_waitTobeLogged = false);
+    int logE(int, const QString& p_ext = "", bool p_waitTobeLogged = false);
 };
 
 #endif // PLOGBEHAVIOR_H
