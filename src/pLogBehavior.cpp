@@ -1,5 +1,7 @@
 #include "pLogBehavior.h"
 
+#include "pLogException.h"
+
 pLogBehavior::pLogBehavior()
 {
 	pLog::sign(this, "no_name");
@@ -14,18 +16,19 @@ pLogBehavior::~pLogBehavior(){
 	pLog::unsign(this);
 }
 
-int pLogBehavior::logI(int p_msg, const QString& p_ext, bool p_waitTobeLogged){
-    return pLog::logI(this, p_msg, p_ext, p_waitTobeLogged);
+int pLogBehavior::logI(const QString& p_msg, bool p_waitTobeLogged){
+	return pLog::logI(this, p_msg, p_waitTobeLogged);
 }
 
-int pLogBehavior::logD(int p_msg, const QString& p_ext, bool p_waitTobeLogged){
-    return pLog::logD(this, p_msg, p_ext, p_waitTobeLogged);
+int pLogBehavior::logD(const QString& p_msg, bool p_waitTobeLogged){
+	return pLog::logD(this, p_msg, p_waitTobeLogged);
 }
 
-int pLogBehavior::logW(int p_msg, const QString& p_ext, bool p_waitTobeLogged){
-    return pLog::logW(this, p_msg, p_ext, p_waitTobeLogged);
+int pLogBehavior::logW(const QString& p_msg, bool p_waitTobeLogged){
+	return pLog::logW(this, p_msg, p_waitTobeLogged);
 }
 
-int pLogBehavior::logE(int p_msg, const QString& p_ext, bool p_waitTobeLogged){
-    return pLog::logE(this, p_msg, p_ext, p_waitTobeLogged);
+int pLogBehavior::logE(const QString& p_msg, bool p_waitTobeLogged){
+	throw pLogException(p_msg);
+	return pLog::logE(this, p_msg, p_waitTobeLogged);
 }

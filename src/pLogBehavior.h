@@ -10,10 +10,10 @@ public:
 	pLogBehavior(const QString);
     virtual ~pLogBehavior();
 
-    int logI(int, const QString& p_ext = "", bool p_waitTobeLogged = false);
-    int logD(int, const QString& p_ext = "", bool p_waitTobeLogged = false);
-    int logW(int, const QString& p_ext = "", bool p_waitTobeLogged = false);
-    int logE(int, const QString& p_ext = "", bool p_waitTobeLogged = false);
+	int logI(const QString& p_msg, bool p_waitTobeLogged = false);
+	int logD(const QString& p_msg, bool p_waitTobeLogged = false);
+	int logW(const QString& p_msg, bool p_waitTobeLogged = false);
+	int logE(const QString& p_msg, bool p_waitTobeLogged = false);
 };
 
 #endif // PLOGBEHAVIOR_H

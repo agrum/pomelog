@@ -29,7 +29,7 @@
 #include <QDebug>
 
 #define PLog_SIGN_LENGTH 10
-#define PLog_EXT_LENGTH 30
+#define PLog_LOG_LENGTH 30
 
 class pLog : public QThread {
 
@@ -42,34 +42,21 @@ public:
 		ALL = 15
 	};
 
-	enum Msg{
-		INFO_NONE = 100,
-		DEBUG_NONE = 200,
-		WARNING_NONE = 300,
-		ERROR_NONE = 400,
-		ERROR_NULL = 401,
-		ERROR_LOG_FILE = 402,
-		ERROR_EXTEND_FILE = 403,
-		ERROR_SIGNATURE = 404,
-		ERROR_MESSAGE = 405
-	};
-
 	static void init(const QString&, int);
-	static void extendMap(const QMap<int, QString>&);
 
 	static int sign(const void*, const QString&);
 	static void unsign(const void*);
 
-	static int logI(const void*, int, const QString& p_ext = "", bool p_waitTobeLogged = false);
-	static int logD(const void*, int, const QString& p_ext = "", bool p_waitTobeLogged = false);
-	static int logW(const void*, int, const QString& p_ext = "", bool p_waitTobeLogged = false);
-	static int logE(const void*, int, const QString& p_ext = "", bool p_waitTobeLogged = false);
+	static int logI(const void*, const QString& p_msg, bool p_waitTobeLogged = false);
+	static int logD(const void*, const QString& p_msg, bool p_waitTobeLogged = false);
+	static int logW(const void*, const QString& p_msg, bool p_waitTobeLogged = false);
+	static int logE(const void*, const QString& p_msg, bool p_waitTobeLogged = false);
 
 private:
 	void run();
 
-	static int check(const void*, int);
-	int log(const void*, Code, int, const QString& p_ext = "", bool p_waitTobeLogged = false);
+	static int check(const void*);
+	int log(const void*, Code, const QString& p_msg, bool p_waitTobeLogged = false);
 
 	pLog();
 	~pLog();
@@ -81,7 +68,6 @@ private:
 	int m_logLvl;
 	QMap<const void*, QString> m_signatoryMap;
 	QMap<int, QString> m_codeMap;
-	QMap<int, QString> m_msgMap;
 	QQueue<QString> m_pendingLog;
 	QMutex m_mutex;
 	QWaitCondition m_waitEntryLogged;

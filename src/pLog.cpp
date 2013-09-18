@@ -24,20 +24,10 @@ pLog::pLog(){
 	m_logLvl = ALL;
 	sign(this, "pLog");
 
-	m_codeMap.insert(1, "I");
-	m_codeMap.insert(2, "D");
-	m_codeMap.insert(4, "W");
-	m_codeMap.insert(8, "E");
-
-	m_msgMap.insert(100, "");
-	m_msgMap.insert(200, "");
-	m_msgMap.insert(300, "");
-	m_msgMap.insert(400, "");
-	m_msgMap.insert(401, "Null pointer");
-	m_msgMap.insert(402, "Log file");
-	m_msgMap.insert(403, "Extension file");
-	m_msgMap.insert(404, "Signature");
-	m_msgMap.insert(405, "Message");
+	m_codeMap.insert(1, "II");
+	m_codeMap.insert(2, "DD");
+	m_codeMap.insert(4, "WW");
+	m_codeMap.insert(8, "EE");
 }
 
 pLog::~pLog(){
@@ -51,18 +41,14 @@ void pLog::init(const QString& p_logPath, int p_logLvl){
 	m_log.m_logLvl = p_logLvl;
 
 	if (!m_log.m_logFile.open(QIODevice::WriteOnly | QIODevice::Text))
-		pLog::logE(&m_log, pLog::ERROR_LOG_FILE, "Can't open file");
+		pLog::logE(&m_log, "Can't open log file");
 
 	m_log.start();
 }
 
-void pLog::extendMap(const QMap<int, QString>& p_mapExtension){
-	m_log.m_msgMap.unite(p_mapExtension);
-}
-
 int pLog::sign(const void* p_key, const QString& p_value){
 	if(p_key == NULL || p_value.isNull())
-		return logE(&m_log, pLog::ERROR_SIGNATURE, "Signature empty");
+		return logE(&m_log, "Try to sign in log registry with empty signature");
 
 	QString value = p_value;
 	while(value.length() < PLog_SIGN_LENGTH)
@@ -79,60 +65,56 @@ void pLog::unsign(const void* p_key){
 	m_log.m_signatoryMap.remove(p_key);
 }
 
-int pLog::logI(const void* p_sign, int p_msg, const QString& p_ext, bool p_waitTobeLogged){
-	if(check(p_sign, p_msg) != 1)
+int pLog::logI(const void* p_sign, const QString& p_msg, bool p_waitTobeLogged){
+	if(check(p_sign) != 1)
 		return -1;
 
-    return m_log.log(p_sign, INFO, p_msg, p_ext, p_waitTobeLogged);
+	return m_log.log(p_sign, INFO, p_msg, p_waitTobeLogged);
 }
 
-int pLog::logD(const void* p_sign, int p_msg, const QString& p_ext, bool p_waitTobeLogged){
-	if(check(p_sign, p_msg) != 1)
+int pLog::logD(const void* p_sign, const QString& p_msg, bool p_waitTobeLogged){
+	if(check(p_sign) != 1)
 		return -1;
 
-    return m_log.log(p_sign, DEBUG, p_msg, p_ext, p_waitTobeLogged);
+	return m_log.log(p_sign, DEBUG, p_msg, p_waitTobeLogged);
 }
 
-int pLog::logW(const void* p_sign, int p_msg, const QString& p_ext, bool p_waitTobeLogged){
-	if(check(p_sign, p_msg) != 1)
+int pLog::logW(const void* p_sign, const QString& p_msg, bool p_waitTobeLogged){
+	if(check(p_sign) != 1)
 		return -1;
 
-    return m_log.log(p_sign, WARNING, p_msg, p_ext, p_waitTobeLogged);
+	return m_log.log(p_sign, WARNING, p_msg, p_waitTobeLogged);
 }
 
-int pLog::logE(const void* p_sign, int p_msg, const QString& p_ext, bool p_waitTobeLogged){
-	if(check(p_sign, p_msg) != 1)
+int pLog::logE(const void* p_sign, const QString& p_msg, bool p_waitTobeLogged){
+	if(check(p_sign) != 1)
 		return -1;
 
-    return m_log.log(p_sign, ERROR, p_msg, p_ext, p_waitTobeLogged);
+	return m_log.log(p_sign, ERROR, p_msg, p_waitTobeLogged);
 }
 
-int pLog::check(const void* p_sign, int p_msg){
+int pLog::check(const void* p_sign){
 	if(p_sign == NULL)
-		return logE(&m_log, pLog::ERROR_SIGNATURE, "Signature null");
+		return logE(&m_log, "Try to log with empty signature");
 	else if(!m_log.m_signatoryMap.contains(p_sign))
-		return logE(&m_log, pLog::ERROR_SIGNATURE, "Signature doesn't exist");
-	else if(!m_log.m_msgMap.contains(p_msg))
-		return logE(&m_log, pLog::ERROR_MESSAGE, "Message doesn't exist");
+		return logE(&m_log, "Try to log with non recorded signature");
 
 	return 1;
 }
 
-int pLog::log(const void* p_signKey, Code p_code, int p_msg, const QString& p_ext, bool p_waitTobeLogged){
+int pLog::log(const void* p_signKey, Code p_code, const QString& p_msg, bool p_waitTobeLogged){
 	if((p_code & m_log.m_logLvl) == 0)
 		return 0;
 
     QString addr = QString("%1").arg((long) p_signKey, 16, 16);
     QString sign = m_signatoryMap.value(p_signKey);
-    QString code = m_codeMap.value(p_code);
-    QString msg = QString ("%1").arg(m_msgMap.value(p_msg), 16);
-	QString logMsg = QString("(%1) %2 | %3 | %4 | %5 | %6")
+	QString code = m_codeMap.value(p_code);
+	QString logMsg = QString("(%1) %2 | %3 | %4 | %5")
 							.arg(code)
 							.arg(QTime::currentTime().toString("hh:mm:ss.zzz"))
 							.arg(sign)
-							.arg(msg)
 							.arg(addr)
-							.arg(p_ext);
+							.arg(p_msg);
 
 	qDebug() << logMsg;
     m_mutex.lock();
@@ -150,7 +132,7 @@ void pLog::run(){
 		m_mutex.lock();
             while(!m_pendingLog.empty()){
                 if(m_logFile.write(m_pendingLog.dequeue().toLatin1()) == -1){
-                    exit(log(&m_log, pLog::ERROR, pLog::ERROR_LOG_FILE, "Writing error"));
+					exit(0);
                 }
                 m_logFile.flush();
             }
