@@ -17,9 +17,9 @@ DESTDIR = lib
 
 HEADERS += \
     pLog.h \
-    pLogBehavior.h \
-    include/pomelog.h \
-    pLogException.h
+	pLogBehavior.h \
+    pLogException.h \
+    ../include/pomelog.h
 
 SOURCES += \
     pLog.cpp \

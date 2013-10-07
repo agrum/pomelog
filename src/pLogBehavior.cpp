@@ -37,6 +37,6 @@ pLogBehavior::logW(const QString& p_msg, bool p_waitTobeLogged) const
 int
 pLogBehavior::logE(const QString& p_msg, bool p_waitTobeLogged) const
 {
-	throw pLogException(p_msg);
+	//throw pLogException(p_msg);
 	return pLog::logE(this, p_msg, p_waitTobeLogged);
 }
