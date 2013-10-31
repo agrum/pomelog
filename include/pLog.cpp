@@ -137,7 +137,7 @@ void pLog::run(){
                 m_logFile.flush();
             }
             m_waitEntryLogged.wakeAll();
-            m_waitQueueNonEmpty.wait(&m_mutex);
+			m_waitQueueNonEmpty.wait(&m_mutex);
         m_mutex.unlock();
 	}
 }

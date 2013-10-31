@@ -11,9 +11,10 @@ QT       -= gui
 TARGET = pomelog
 CONFIG   += console
 CONFIG   -= app_bundle
-
 TEMPLATE = lib
-DESTDIR = lib
+
+if:CONFIG(release, debug|release): DESTDIR = release
+else:CONFIG(debug, debug|release): DESTDIR = debug
 
 HEADERS += \
     pLog.h \
